@@ -7,90 +7,90 @@ The Pair Programming Platform is built with a layered architecture separating co
 ## Architecture Diagram
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                         CLIENTS                              │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
-│  │   Browser    │  │   Postman    │  │  Python Test │      │
-│  │  (demo.html) │  │              │  │   Scripts    │      │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘      │
-└─────────┼──────────────────┼──────────────────┼─────────────┘
-          │                  │                  │
-          │ HTTP/WS          │ HTTP/WS          │ HTTP/WS
-          │                  │                  │
-┌─────────▼──────────────────▼──────────────────▼─────────────┐
-│                    FASTAPI APPLICATION                       │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │                 MIDDLEWARE LAYER                      │   │
-│  │  ┌────────────┐  ┌────────────┐  ┌────────────┐     │   │
-│  │  │    CORS    │  │  Logging   │  │   Error    │     │   │
-│  │  │ Middleware │  │ Middleware │  │  Handler   │     │   │
-│  │  └────────────┘  └────────────┘  └────────────┘     │   │
-│  └──────────────────────────────────────────────────────┘   │
-│                            │                                 │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │                   ROUTER LAYER                        │   │
-│  │  ┌──────────┐  ┌──────────────┐  ┌──────────────┐   │   │
-│  │  │  Rooms   │  │ Autocomplete │  │  WebSocket   │   │   │
-│  │  │  Router  │  │    Router    │  │    Router    │   │   │
-│  │  │ /api/rooms│  │/api/autocomplete│ /ws/{id}    │   │   │
-│  │  └─────┬────┘  └──────┬───────┘  └──────┬───────┘   │   │
-│  └────────┼───────────────┼──────────────────┼───────────┘   │
-│           │               │                  │               │
-│  ┌────────▼───────────────▼──────────────────▼───────────┐   │
-│  │                  SERVICE LAYER                        │   │
-│  │  ┌──────────────┐  ┌────────────────────────────┐    │   │
-│  │  │ RoomService  │  │ AutocompleteService        │    │   │
-│  │  │              │  │                            │    │   │
-│  │  │ - create()   │  │ - get_suggestion()         │    │   │
-│  │  │ - get()      │  │ - pattern_matching()       │    │   │
-│  │  │ - update()   │  │ - context_analysis()       │    │   │
-│  │  └──────┬───────┘  └────────────────────────────┘    │   │
-│  └─────────┼──────────────────────────────────────────────┘   │
-│            │                                                  │
-│  ┌─────────▼──────────────────────────────────────────────┐   │
-│  │                CONNECTION MANAGER                       │   │
-│  │  ┌───────────────────────────────────────────────┐     │   │
-│  │  │  WebSocket Connection Pool                    │     │   │
-│  │  │  {room_id: [ws1, ws2, ws3, ...]}             │     │   │
-│  │  │                                               │     │   │
-│  │  │  - connect(ws, room_id)                      │     │   │
-│  │  │  - disconnect(ws, room_id)                   │     │   │
-│  │  │  - broadcast(msg, room_id, exclude)          │     │   │
-│  │  └───────────────────────────────────────────────┘     │   │
-│  └────────────────────────────────────────────────────────┘   │
-│            │                                                  │
-│  ┌─────────▼──────────────────────────────────────────────┐   │
-│  │                   DATA LAYER                            │   │
-│  │  ┌──────────────┐         ┌────────────────────────┐   │   │
-│  │  │  SQLAlchemy  │────────▶│    Pydantic Schemas    │   │   │
-│  │  │    Models    │         │                        │   │   │
-│  │  │              │         │ - RoomCreate           │   │   │
-│  │  │  - Room      │         │ - RoomResponse         │   │   │
-│  │  │    - id      │         │ - AutocompleteRequest  │   │   │
-│  │  │    - code    │         │ - AutocompleteResponse │   │   │
-│  │  │    - language│         └────────────────────────┘   │   │
-│  │  └──────┬───────┘                                      │   │
-│  └─────────┼──────────────────────────────────────────────┘   │
-└────────────┼─────────────────────────────────────────────────┘
-             │
-┌────────────▼─────────────────────────────────────────────────┐
-│                    DATABASE LAYER                            │
-│  ┌────────────────────────────────────────────────────────┐  │
-│  │              PostgreSQL Database                        │  │
-│  │                                                         │  │
-│  │  ┌─────────────────────────────────────────────────┐   │  │
-│  │  │  Table: rooms                                   │   │  │
-│  │  │  ┌──────────────┬──────────┬─────────────────┐ │   │  │
-│  │  │  │ id (PK)      │ VARCHAR  │ UUID            │ │   │  │
-│  │  │  │ code         │ TEXT     │ Code content    │ │   │  │
-│  │  │  │ language     │ VARCHAR  │ python/js/etc   │ │   │  │
-│  │  │  │ created_at   │ TIMESTAMP│ Creation time   │ │   │  │
-│  │  │  │ updated_at   │ TIMESTAMP│ Last update     │ │   │  │
-│  │  │  │ active_users │ INTEGER  │ User count      │ │   │  │
-│  │  │  └──────────────┴──────────┴─────────────────┘ │   │  │
-│  │  └─────────────────────────────────────────────────┘   │  │
-│  └────────────────────────────────────────────────────────┘  │
-└──────────────────────────────────────────────────────────────┘
+
+                         CLIENTS                              
+            
+     Browser         Postman        Python Test       
+    (demo.html)                      Scripts          
+            
+
+                                              
+           HTTP/WS           HTTP/WS           HTTP/WS
+                                              
+
+                    FASTAPI APPLICATION                       
+     
+                   MIDDLEWARE LAYER                         
+                
+        CORS        Logging        Error            
+     Middleware    Middleware     Handler           
+                
+     
+                                                             
+     
+                     ROUTER LAYER                           
+              
+      Rooms      Autocomplete     WebSocket         
+      Router        Router          Router          
+     /api/rooms  /api/autocomplete /ws/{id}          
+              
+     
+                                                           
+     
+                    SERVICE LAYER                           
+             
+     RoomService     AutocompleteService               
+                                                       
+     - create()      - get_suggestion()                
+     - get()         - pattern_matching()              
+     - update()      - context_analysis()              
+             
+     
+                                                              
+     
+                  CONNECTION MANAGER                          
+            
+      WebSocket Connection Pool                            
+      {room_id: [ws1, ws2, ws3, ...]}                     
+                                                           
+      - connect(ws, room_id)                              
+      - disconnect(ws, room_id)                           
+      - broadcast(msg, room_id, exclude)                  
+            
+     
+                                                              
+     
+                     DATA LAYER                               
+                   
+      SQLAlchemy      Pydantic Schemas          
+        Models                                           
+                            - RoomCreate                 
+      - Room                - RoomResponse               
+        - id                - AutocompleteRequest        
+        - code              - AutocompleteResponse       
+        - language               
+                                             
+     
+
+             
+
+                    DATABASE LAYER                            
+    
+                PostgreSQL Database                          
+                                                             
+         
+      Table: rooms                                        
+            
+       id (PK)       VARCHAR   UUID                  
+       code          TEXT      Code content          
+       language      VARCHAR   python/js/etc         
+       created_at    TIMESTAMP Creation time         
+       updated_at    TIMESTAMP Last update           
+       active_users  INTEGER   User count            
+            
+         
+    
+
 ```
 
 ## Communication Flow
@@ -98,51 +98,51 @@ The Pair Programming Platform is built with a layered architecture separating co
 ### REST API Flow (Room Creation)
 ```
 Client                Router              Service           Database
-  │                     │                   │                 │
-  ├─POST /api/rooms────▶│                   │                 │
-  │                     ├──create_room()───▶│                 │
-  │                     │                   ├─INSERT INTO────▶│
-  │                     │                   │◀────room────────┤
-  │                     │◀──room_data───────┤                 │
-  │◀─RoomResponse───────┤                   │                 │
-  │   {roomId}          │                   │                 │
+                                                           
+  POST /api/rooms                                    
+                       create_room()                 
+                                          INSERT INTO
+                                          room
+                       room_data                 
+  RoomResponse                                    
+     {roomId}                                              
 ```
 
 ### WebSocket Flow (Real-time Collaboration)
 ```
 User 1              WebSocket Router    ConnectionManager    Database
-  │                       │                    │                │
-  ├─WS /ws/{room_id}─────▶│                    │                │
-  │                       ├──connect(ws)──────▶│                │
-  │                       │                    ├─add to pool────┤
-  │◀──init message────────┤                    │                │
-  │   {code, language}    │                    │                │
-  │                       │                    │                │
-  ├─code_update──────────▶│                    │                │
-  │   {code: "..."}       ├─update_code()─────▶│                │
-  │                       │                    ├─UPDATE──────────▶
-  │                       ├─broadcast()────────▶                │
-  │                       │  (to User 2)       │                │
+                                                             
+  WS /ws/{room_id}                                    
+                         connect(ws)                
+                                             add to pool
+  init message                                    
+     {code, language}                                        
+                                                             
+  code_update                                    
+     {code: "..."}       update_code()                
+                                             UPDATE
+                         broadcast()                
+                           (to User 2)                       
   
-User 2                    │                    │                │
-  │◀──code_update─────────┤                    │                │
-  │   {code: "..."}       │                    │                │
+User 2                                                        
+  code_update                                    
+     {code: "..."}                                           
 ```
 
 ### Autocomplete Flow
 ```
 Client              Router              Service
-  │                   │                   │
-  ├─POST /autocomplete│                   │
-  │  {code, cursor}   │                   │
-  │                   ├─get_suggestion()─▶│
-  │                   │                   ├─analyze_code()
-  │                   │                   ├─pattern_match()
-  │                   │                   ├─generate_suggestion()
-  │                   │◀──suggestion──────┤
-  │◀──response────────┤                   │
-  │  {suggestion,     │                   │
-  │   confidence}     │                   │
+                                        
+  POST /autocomplete                   
+    {code, cursor}                      
+                     get_suggestion()
+                                        analyze_code()
+                                        pattern_match()
+                                        generate_suggestion()
+                     suggestion
+  response                   
+    {suggestion,                        
+     confidence}                        
 ```
 
 ## Component Details
@@ -204,15 +204,15 @@ Client              Router              Service
 ### Production Architecture (Future)
 ```
 Load Balancer
-     │
-     ├─────┬─────┬─────┐
-     │     │     │     │
+     
+     
+                    
    API   API   API   API  (Multiple instances)
-     │     │     │     │
-     └─────┴─────┴─────┘
-           │
-    ┌──────┴──────┐
-    │             │
+                    
+     
+           
+    
+                 
   Redis      PostgreSQL
   (Pub/Sub)  (Persistence)
 ```

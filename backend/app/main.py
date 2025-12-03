@@ -4,7 +4,6 @@ from app.routers import rooms, autocomplete, websocket
 from app.database import engine, Base
 from app.config import settings
 
-# Create database tables
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -13,7 +12,6 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS middleware configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_ORIGINS,
@@ -22,7 +20,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
 app.include_router(rooms.router, prefix="/api", tags=["rooms"])
 app.include_router(autocomplete.router, prefix="/api", tags=["autocomplete"])
 app.include_router(websocket.router, tags=["websocket"])

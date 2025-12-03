@@ -2,7 +2,7 @@
 
 A full-stack collaborative coding application that enables real-time pair programming with AI-powered autocomplete suggestions.
 
-## 🎯 Features
+##  Features
 
 - **Real-time Collaboration**: Multiple users can code together in the same room with instant synchronization
 - **WebSocket Communication**: Low-latency updates using WebSocket connections
@@ -11,43 +11,43 @@ A full-stack collaborative coding application that enables real-time pair progra
 - **Persistent Storage**: PostgreSQL database for room state management
 - **Clean Architecture**: Well-structured backend with separation of concerns
 
-## 🏗️ Architecture
+##  Architecture
 
 ### Backend Structure
 ```
 backend/
-├── app/
-│   ├── __init__.py
-│   ├── main.py              # Application entry point
-│   ├── config.py            # Configuration management
-│   ├── database.py          # Database setup
-│   ├── models/              # SQLAlchemy models
-│   │   ├── __init__.py
-│   │   └── room.py
-│   ├── schemas/             # Pydantic schemas
-│   │   ├── __init__.py
-│   │   ├── room.py
-│   │   └── autocomplete.py
-│   ├── routers/             # API endpoints
-│   │   ├── __init__.py
-│   │   ├── rooms.py
-│   │   ├── autocomplete.py
-│   │   └── websocket.py
-│   └── services/            # Business logic
-│       ├── __init__.py
-│       ├── room_service.py
-│       └── autocomplete_service.py
-├── scripts/
-│   └── init_db.py           # Database initialization
-├── tests/
-│   ├── test_api.py          # REST API tests
-│   └── test_websocket.py    # WebSocket tests
-├── requirements.txt
-├── .env.example
-└── run.py
+ app/
+    __init__.py
+    main.py              # Application entry point
+    config.py            # Configuration management
+    database.py          # Database setup
+    models/              # SQLAlchemy models
+       __init__.py
+       room.py
+    schemas/             # Pydantic schemas
+       __init__.py
+       room.py
+       autocomplete.py
+    routers/             # API endpoints
+       __init__.py
+       rooms.py
+       autocomplete.py
+       websocket.py
+    services/            # Business logic
+        __init__.py
+        room_service.py
+        autocomplete_service.py
+ scripts/
+    init_db.py           # Database initialization
+ tests/
+    test_api.py          # REST API tests
+    test_websocket.py    # WebSocket tests
+ requirements.txt
+ .env.example
+ run.py
 ```
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 
@@ -113,7 +113,7 @@ The API will be available at: `http://localhost:8000`
 
 API documentation (Swagger): `http://localhost:8000/docs`
 
-## 📡 API Endpoints
+##  API Endpoints
 
 ### REST API
 
@@ -251,7 +251,7 @@ WS /ws/{room_id}
 }
 ```
 
-## 🧪 Testing
+##  Testing
 
 ### Test REST API
 ```bash
@@ -294,7 +294,7 @@ curl -X POST http://localhost:8000/api/autocomplete \
 3. Use the WebSocket feature in Postman to connect to `ws://localhost:8000/ws/{room_id}`
 4. Send JSON messages to test real-time updates
 
-## 🎨 Design Choices
+##  Design Choices
 
 ### 1. **Architecture Pattern**
 - **Layered Architecture**: Separation of concerns with routers, services, and models
@@ -323,7 +323,7 @@ curl -X POST http://localhost:8000/api/autocomplete \
 - **Type Safety**: Pydantic schemas for request/response validation
 - **Configuration Management**: Environment-based settings with .env support
 
-## 🔧 Configuration
+##  Configuration
 
 Environment variables in `.env`:
 
@@ -338,7 +338,7 @@ ALLOWED_ORIGINS=["http://localhost:3000", "http://localhost:5173"]
 DEBUG=True
 ```
 
-## 🚧 Limitations & Known Issues
+##  Limitations & Known Issues
 
 1. **Conflict Resolution**: Uses last-write-wins strategy. No operational transformation (OT) or CRDT.
 2. **Scalability**: In-memory connection manager. For production, use Redis pub/sub.
@@ -351,7 +351,7 @@ DEBUG=True
 9. **Database Migrations**: No migration system (Alembic) configured.
 10. **Testing**: Limited test coverage, no unit tests for services.
 
-## 🎯 Future Improvements
+##  Future Improvements
 
 ### With More Time (Priority Order)
 
@@ -412,7 +412,7 @@ DEBUG=True
     - Keyboard shortcuts
     - Mobile responsive design
 
-## 📊 Database Schema
+##  Database Schema
 
 ```sql
 CREATE TABLE rooms (
@@ -425,7 +425,7 @@ CREATE TABLE rooms (
 );
 ```
 
-## 🐛 Troubleshooting
+##  Troubleshooting
 
 ### Database Connection Error
 ```
@@ -442,15 +442,15 @@ ERROR: [Errno 48] Address already in use
 ### WebSocket Connection Failed
 **Solution**: Ensure CORS settings allow your frontend origin in `.env`.
 
-## 📝 License
+##  License
 
 This project is created for demonstration purposes.
 
-## 👥 Author
+##  Author
 
 Tredence Full-Stack Python API Developer Assignment
 
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 - FastAPI documentation
 - SQLAlchemy documentation

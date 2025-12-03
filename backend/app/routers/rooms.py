@@ -45,7 +45,7 @@ async def get_room(
     room = RoomService.get_room(db, room_id)
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
-    
+
     return RoomResponse(
         roomId=room.id,
         code=room.code,

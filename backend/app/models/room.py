@@ -8,7 +8,7 @@ class Room(Base):
     __tablename__ = "rooms"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    code = Column(Text, default="# Start coding here...\n")
+    code = Column(Text, default="
     language = Column(String, default="python")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

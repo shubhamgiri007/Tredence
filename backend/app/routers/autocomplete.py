@@ -21,7 +21,7 @@ async def get_autocomplete(request: AutocompleteRequest):
         cursor_position=request.cursorPosition,
         language=request.language
     )
-    
+
     return AutocompleteResponse(
         suggestion=result["suggestion"],
         confidence=result["confidence"],

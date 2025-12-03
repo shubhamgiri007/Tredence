@@ -5,7 +5,6 @@ from typing import Dict
 class AutocompleteService:
     """Service for providing mocked AI autocomplete suggestions"""
 
-    # Common Python patterns and suggestions
     PYTHON_PATTERNS = {
         r"def\s+\w*$": "def function_name(param1, param2):\n    pass",
         r"class\s+\w*$": "class ClassName:\n    def __init__(self):\n        pass",
@@ -40,14 +39,11 @@ class AutocompleteService:
         Returns:
             Dictionary containing suggestion, confidence, and type
         """
-        # Extract the line where cursor is located
         lines = code[:cursor_position].split('\n')
         current_line = lines[-1] if lines else ""
-        
-        # Select pattern dictionary based on language
+
         patterns = AutocompleteService.PYTHON_PATTERNS if language == "python" else AutocompleteService.JAVASCRIPT_PATTERNS
-        
-        # Check for pattern matches
+
         for pattern, suggestion in patterns.items():
             if re.search(pattern, current_line):
                 return {
@@ -55,42 +51,37 @@ class AutocompleteService:
                     "confidence": 0.85,
                     "type": "snippet"
                 }
-        
-        # Context-aware suggestions
+
         if language == "python":
-            # If last few characters suggest list comprehension
             if "[" in current_line and "for" not in current_line:
                 return {
                     "suggestion": "[x for x in iterable if condition]",
                     "confidence": 0.75,
                     "type": "snippet"
                 }
-            
-            # If defining a method
+
             if "    def " in current_line or "\tdef " in current_line:
                 return {
                     "suggestion": "def method_name(self, param):\n        pass",
                     "confidence": 0.8,
                     "type": "method"
                 }
-            
-            # Common imports suggestion
+
             if current_line.strip().startswith("import") or current_line.strip().startswith("from"):
                 return {
                     "suggestion": "from typing import List, Dict, Optional",
                     "confidence": 0.7,
                     "type": "import"
                 }
-        
-        # Default suggestion based on common patterns
+
         common_suggestions = {
-            "python": "# TODO: Implement this function",
+            "python": "
             "javascript": "// TODO: Implement this function",
             "typescript": "// TODO: Implement this function",
         }
-        
+
         return {
-            "suggestion": common_suggestions.get(language, "# Add your code here"),
+            "suggestion": common_suggestions.get(language, "
             "confidence": 0.5,
             "type": "comment"
         }

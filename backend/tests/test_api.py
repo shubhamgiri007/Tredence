@@ -40,14 +40,14 @@ def test_autocomplete():
 
 if __name__ == "__main__":
     print("=== Testing Pair Programming API ===\n")
-    
+
     try:
         test_health()
         room_id = test_create_room()
         if room_id:
             test_get_room(room_id)
         test_autocomplete()
-        
+
         print("All tests completed!")
     except Exception as e:
         print(f"Error: {e}")
