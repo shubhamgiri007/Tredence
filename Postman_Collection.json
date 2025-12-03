@@ -1,0 +1,158 @@
+{
+  "info": {
+    "name": "Pair Programming API",
+    "description": "Real-time collaborative coding platform",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/health",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "Create Room",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"language\": \"python\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/rooms",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "rooms"]
+        }
+      }
+    },
+    {
+      "name": "Get Room Details",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/api/rooms/{{roomId}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "rooms", "{{roomId}}"]
+        }
+      }
+    },
+    {
+      "name": "Autocomplete - Function Definition",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"code\": \"def hello\",\n  \"cursorPosition\": 9,\n  \"language\": \"python\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/autocomplete",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "autocomplete"]
+        }
+      }
+    },
+    {
+      "name": "Autocomplete - Class Definition",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"code\": \"class MyClass\",\n  \"cursorPosition\": 13,\n  \"language\": \"python\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/autocomplete",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "autocomplete"]
+        }
+      }
+    },
+    {
+      "name": "Autocomplete - Try-Except",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"code\": \"try:\",\n  \"cursorPosition\": 4,\n  \"language\": \"python\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/autocomplete",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "autocomplete"]
+        }
+      }
+    },
+    {
+      "name": "Autocomplete - Import Statement",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"code\": \"import num\",\n  \"cursorPosition\": 10,\n  \"language\": \"python\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/autocomplete",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "autocomplete"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "roomId",
+      "value": "YOUR_ROOM_ID_HERE"
+    }
+  ]
+}

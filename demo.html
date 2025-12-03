@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pair Programming Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #2d3748;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #fc8181;
+        }
+
+        .status-dot.connected {
+            background: #48bb78;
+        }
+
+        .controls {
+            padding: 20px;
+            background: #f7fafc;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+            min-width: 300px;
+        }
+
+        input {
+            padding: 10px 15px;
+            border: 2px solid #cbd5e0;
+            border-radius: 5px;
+            font-size: 14px;
+            flex: 1;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5a67d8;
+        }
+
+        button:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+        }
+
+        .editor-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .editor-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .panel-header {
+            font-weight: 600;
+            color: #2d3748;
+            padding: 10px;
+            background: #edf2f7;
+            border-radius: 5px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 400px;
+            padding: 15px;
+            border: 2px solid #cbd5e0;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+        }
+
+        .info-panel {
+            padding: 15px;
+            background: #edf2f7;
+            border-radius: 5px;
+            font-size: 13px;
+        }
+
+        .info-panel h3 {
+            margin-bottom: 10px;
+            color: #2d3748;
+        }
+
+        .log {
+            max-height: 200px;
+            overflow-y: auto;
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 3px 0;
+        }
+
+        .log-entry.error {
+            color: #fc8181;
+        }
+
+        .log-entry.success {
+            color: #48bb78;
+        }
+
+        .log-entry.info {
+            color: #63b3ed;
+        }
+
+        .autocomplete-box {
+            padding: 10px;
+            background: #fef5e7;
+            border: 2px solid #f39c12;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .autocomplete-box.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .editor-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Pair Programming Demo</h1>
+            <div class="status">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">Disconnected</span>
+                <span id="activeUsers">Users: 0</span>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="input-group">
+                <input type="text" id="roomIdInput" placeholder="Enter Room ID or leave empty to create new">
+                <button id="createRoomBtn">Create Room</button>
+                <button id="joinRoomBtn">Join Room</button>
+                <button id="disconnectBtn" disabled>Disconnect</button>
+            </div>
+            <button id="autocompleteBtn" disabled>Get Suggestion</button>
+        </div>
+
+        <div class="editor-container">
+            <div class="editor-panel">
+                <div class="panel-header">Your Code Editor</div>
+                <textarea id="codeEditor" placeholder="Start typing your code here..."></textarea>
+                <div class="autocomplete-box" id="autocompleteBox">
+                    <strong>💡 Suggestion:</strong>
+                    <pre id="suggestionText"></pre>
+                </div>
+                <div class="info-panel">
+                    <h3>Room Info</h3>
+                    <div id="roomInfo">No room joined</div>
+                </div>
+            </div>
+
+            <div class="editor-panel">
+                <div class="panel-header">Activity Log</div>
+                <div class="log" id="activityLog">
+                    <div class="log-entry info">Welcome to Pair Programming Demo!</div>
+                    <div class="log-entry info">Create a room or join an existing one to start.</div>
+                </div>
+                <div class="info-panel">
+                    <h3>Instructions</h3>
+                    <ol style="margin-left: 20px;">
+                        <li>Click "Create Room" to start a new session</li>
+                        <li>Share the Room ID with your pair</li>
+                        <li>Both users can edit the code in real-time</li>
+                        <li>Click "Get Suggestion" for autocomplete</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        const WS_BASE = 'ws://localhost:8000';
+        
+        let ws = null;
+        let currentRoomId = null;
+        let lastCodeUpdate = '';
+        let isUpdatingFromServer = false;
+
+        // DOM elements
+        const roomIdInput = document.getElementById('roomIdInput');
+        const createRoomBtn = document.getElementById('createRoomBtn');
+        const joinRoomBtn = document.getElementById('joinRoomBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const autocompleteBtn = document.getElementById('autocompleteBtn');
+        const codeEditor = document.getElementById('codeEditor');
+        const activityLog = document.getElementById('activityLog');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const activeUsers = document.getElementById('activeUsers');
+        const roomInfo = document.getElementById('roomInfo');
+        const autocompleteBox = document.getElementById('autocompleteBox');
+        const suggestionText = document.getElementById('suggestionText');
+
+        // Logger
+        function log(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            activityLog.appendChild(entry);
+            activityLog.scrollTop = activityLog.scrollHeight;
+        }
+
+        // Update status
+        function updateStatus(connected) {
+            if (connected) {
+                statusDot.classList.add('connected');
+                statusText.textContent = 'Connected';
+                disconnectBtn.disabled = false;
+                autocompleteBtn.disabled = false;
+                createRoomBtn.disabled = true;
+                joinRoomBtn.disabled = true;
+            } else {
+                statusDot.classList.remove('connected');
+                statusText.textContent = 'Disconnected';
+                disconnectBtn.disabled = true;
+                autocompleteBtn.disabled = true;
+                createRoomBtn.disabled = false;
+                joinRoomBtn.disabled = false;
+            }
+        }
+
+        // Create room
+        createRoomBtn.addEventListener('click', async () => {
+            try {
+                log('Creating new room...', 'info');
+                const response = await fetch(`${API_BASE}/api/rooms`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ language: 'python' })
+                });
+                const data = await response.json();
+                currentRoomId = data.roomId;
+                roomIdInput.value = currentRoomId;
+                log(`Room created: ${currentRoomId}`, 'success');
+                connectWebSocket(currentRoomId);
+            } catch (error) {
+                log(`Error creating room: ${error.message}`, 'error');
+            }
+        });
+
+        // Join room
+        joinRoomBtn.addEventListener('click', () => {
+            const roomId = roomIdInput.value.trim();
+            if (!roomId) {
+                log('Please enter a room ID', 'error');
+                return;
+            }
+            currentRoomId = roomId;
+            connectWebSocket(roomId);
+        });
+
+        // Disconnect
+        disconnectBtn.addEventListener('click', () => {
+            if (ws) {
+                ws.close();
+                log('Disconnected from room', 'info');
+            }
+        });
+
+        // Connect WebSocket
+        function connectWebSocket(roomId) {
+            try {
+                log(`Connecting to room ${roomId}...`, 'info');
+                ws = new WebSocket(`${WS_BASE}/ws/${roomId}`);
+
+                ws.onopen = () => {
+                    log('WebSocket connected!', 'success');
+                    updateStatus(true);
+                    roomInfo.innerHTML = `<strong>Room ID:</strong> ${roomId}<br><strong>Status:</strong> Connected`;
+                };
+
+                ws.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    handleWebSocketMessage(data);
+                };
+
+                ws.onerror = (error) => {
+                    log('WebSocket error occurred', 'error');
+                    console.error(error);
+                };
+
+                ws.onclose = () => {
+                    log('WebSocket disconnected', 'info');
+                    updateStatus(false);
+                    ws = null;
+                };
+            } catch (error) {
+                log(`Connection error: ${error.message}`, 'error');
+            }
+        }
+
+        // Handle WebSocket messages
+        function handleWebSocketMessage(data) {
+            switch (data.type) {
+                case 'init':
+                    log('Received initial code', 'info');
+                    isUpdatingFromServer = true;
+                    codeEditor.value = data.code;
+                    lastCodeUpdate = data.code;
+                    isUpdatingFromServer = false;
+                    activeUsers.textContent = `Users: ${data.activeUsers}`;
+                    break;
+
+                case 'code_update':
+                    log('Received code update from peer', 'info');
+                    isUpdatingFromServer = true;
+                    codeEditor.value = data.code;
+                    lastCodeUpdate = data.code;
+                    isUpdatingFromServer = false;
+                    break;
+
+                case 'user_joined':
+                    log('A user joined the room', 'success');
+                    activeUsers.textContent = `Users: ${data.activeUsers}`;
+                    break;
+
+                case 'user_left':
+                    log('A user left the room', 'info');
+                    activeUsers.textContent = `Users: ${data.activeUsers}`;
+                    break;
+
+                case 'cursor_move':
+                    // Could show cursor position
+                    break;
+            }
+        }
+
+        // Send code updates
+        let updateTimeout = null;
+        codeEditor.addEventListener('input', () => {
+            if (isUpdatingFromServer) return;
+
+            clearTimeout(updateTimeout);
+            updateTimeout = setTimeout(() => {
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    const code = codeEditor.value;
+                    if (code !== lastCodeUpdate) {
+                        ws.send(JSON.stringify({
+                            type: 'code_update',
+                            code: code,
+                            cursorPosition: codeEditor.selectionStart,
+                            userId: 'demo-user'
+                        }));
+                        lastCodeUpdate = code;
+                    }
+                }
+            }, 300);
+        });
+
+        // Autocomplete
+        autocompleteBtn.addEventListener('click', async () => {
+            try {
+                const code = codeEditor.value;
+                const cursorPosition = codeEditor.selectionStart;
+
+                log('Requesting autocomplete suggestion...', 'info');
+                const response = await fetch(`${API_BASE}/api/autocomplete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        code: code,
+                        cursorPosition: cursorPosition,
+                        language: 'python'
+                    })
+                });
+
+                const data = await response.json();
+                log(`Suggestion received (confidence: ${data.confidence})`, 'success');
+                suggestionText.textContent = data.suggestion;
+                autocompleteBox.classList.add('show');
+
+                setTimeout(() => {
+                    autocompleteBox.classList.remove('show');
+                }, 5000);
+            } catch (error) {
+                log(`Autocomplete error: ${error.message}`, 'error');
+            }
+        });
+    </script>
+</body>
+</html>
