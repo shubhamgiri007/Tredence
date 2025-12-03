@@ -1,0 +1,56 @@
+Folder PATH listing
+Volume serial number is 9AE1-773F
+C:.
+|   .gitignore
+|   ARCHITECTURE.md
+|   demo.html
+|   docker-compose.yml
+|   DOCKER.md
+|   IMPLEMENTATION_COMPLETE.md
+|   Postman_Collection.json
+|   PROJECT_STRUCTURE.txt
+|   PROJECT_SUMMARY.md
+|   QUICKSTART.md
+|   README.md
+|   
+\---backend
+    |   .env
+    |   .env.example
+    |   .gitignore
+    |   Dockerfile
+    |   requirements.txt
+    |   run.py
+    |   
+    +---app
+    |   |   config.py
+    |   |   database.py
+    |   |   main.py
+    |   |   __init__.py
+    |   |   
+    |   +---models
+    |   |       room.py
+    |   |       __init__.py
+    |   |       
+    |   +---routers
+    |   |       autocomplete.py
+    |   |       rooms.py
+    |   |       websocket.py
+    |   |       __init__.py
+    |   |       
+    |   +---schemas
+    |   |       autocomplete.py
+    |   |       room.py
+    |   |       __init__.py
+    |   |       
+    |   \---services
+    |           autocomplete_service.py
+    |           room_service.py
+    |           __init__.py
+    |           
+    +---scripts
+    |       init_db.py
+    |       
+    \---tests
+            test_api.py
+            test_websocket.py
+            
