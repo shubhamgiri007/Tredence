@@ -75,13 +75,13 @@ class AutocompleteService:
                 }
 
         common_suggestions = {
-            "python": "
+            "python": "# TODO: Implement this function",
             "javascript": "// TODO: Implement this function",
             "typescript": "// TODO: Implement this function",
         }
 
         return {
-            "suggestion": common_suggestions.get(language, "
+            "suggestion": common_suggestions.get(language, "# Add your code here"),
             "confidence": 0.5,
             "type": "comment"
         }

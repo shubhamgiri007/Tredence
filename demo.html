@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Pair Programming Demo</title>
     <style>
         * {
@@ -208,11 +211,11 @@
         <div class="controls">
             <div class="input-group">
                 <input type="text" id="roomIdInput" placeholder="Enter Room ID or leave empty to create new">
-                <button id="createRoomBtn">Create Room</button>
-                <button id="joinRoomBtn">Join Room</button>
-                <button id="disconnectBtn" disabled>Disconnect</button>
+                <button type="button" id="createRoomBtn">Create Room</button>
+                <button type="button" id="joinRoomBtn">Join Room</button>
+                <button type="button" id="disconnectBtn" disabled>Disconnect</button>
             </div>
-            <button id="autocompleteBtn" disabled>Get Suggestion</button>
+            <button type="button" id="autocompleteBtn" disabled>Get Suggestion</button>
         </div>
 
         <div class="editor-container">
@@ -257,6 +260,14 @@
         let lastCodeUpdate = '';
         let isUpdatingFromServer = false;
 
+        // Prevent any accidental page navigation
+        window.addEventListener('beforeunload', function(e) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+
         // DOM elements
         const roomIdInput = document.getElementById('roomIdInput');
         const createRoomBtn = document.getElementById('createRoomBtn');
@@ -272,13 +283,40 @@
         const autocompleteBox = document.getElementById('autocompleteBox');
         const suggestionText = document.getElementById('suggestionText');
 
-        // Logger
+        // Check server on load
+        async function checkServer() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                if (response.ok) {
+                    log('Server is online and ready!', 'success');
+                } else {
+                    log(`Server responded with status ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log('Cannot connect to server!', 'error');
+                log(`Make sure server is running at ${API_BASE}`, 'error');
+                log('Run: cd backend && python -m uvicorn app.main:app --reload', 'info');
+            }
+        }
+
+        // Run on page load
+        let serverCheckDone = false;
+        window.addEventListener('load', () => {
+            if (!serverCheckDone) {
+                serverCheckDone = true;
+                checkServer();
+            }
+        });
+
+        // Logger - prevents logs from disappearing
         function log(message, type = 'info') {
             const entry = document.createElement('div');
             entry.className = `log-entry ${type}`;
             entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
             activityLog.appendChild(entry);
             activityLog.scrollTop = activityLog.scrollHeight;
+            
+            console.log(`[${type.toUpperCase()}] ${message}`);
         }
 
         // Update status
@@ -301,53 +339,109 @@
         }
 
         // Create room
-        createRoomBtn.addEventListener('click', async () => {
+        createRoomBtn.onclick = async function(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+            }
+            
+            console.log('Create Room button clicked');
+            
             try {
                 log('Creating new room...', 'info');
+                log(`Calling API: ${API_BASE}/api/rooms`, 'info');
+                
                 const response = await fetch(`${API_BASE}/api/rooms`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ language: 'python' })
                 });
+                
+                console.log('Response received:', response);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
                 const data = await response.json();
+                console.log('Room data:', data);
+                
                 currentRoomId = data.roomId;
                 roomIdInput.value = currentRoomId;
-                log(`Room created: ${currentRoomId}`, 'success');
-                connectWebSocket(currentRoomId);
+                roomInfo.innerHTML = `<strong>Room ID:</strong> <span style="color: #00d4ff; font-size: 1.2em; font-weight: bold;">${currentRoomId}</span><br><strong>Status:</strong> Ready to connect`;
+                log(`✓ Room created successfully!`, 'success');
+                log(`✓ Room ID: ${currentRoomId}`, 'success');
+                log(`Click "Join Room" to connect via WebSocket`, 'info');
+                
+                joinRoomBtn.disabled = false;
+                createRoomBtn.disabled = true;
             } catch (error) {
-                log(`Error creating room: ${error.message}`, 'error');
+                log(`ERROR: ${error.message}`, 'error');
+                log(`Check if server is running at ${API_BASE}`, 'error');
+                console.error('Full error:', error);
             }
-        });
+            
+            return false;
+        };
 
         // Join room
-        joinRoomBtn.addEventListener('click', () => {
+        joinRoomBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            
             const roomId = roomIdInput.value.trim();
             if (!roomId) {
                 log('Please enter a room ID', 'error');
-                return;
+                return false;
             }
             currentRoomId = roomId;
+            log(`Joining room: ${roomId}`, 'info');
             connectWebSocket(roomId);
+            return false;
         });
 
         // Disconnect
-        disconnectBtn.addEventListener('click', () => {
+        disconnectBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            
             if (ws) {
                 ws.close();
                 log('Disconnected from room', 'info');
             }
+            joinRoomBtn.disabled = false;
+            createRoomBtn.disabled = false;
+            disconnectBtn.disabled = true;
+            autocompleteBtn.disabled = true;
+            return false;
         });
 
         // Connect WebSocket
         function connectWebSocket(roomId) {
+            if (!roomId) {
+                log('ERROR: No room ID provided for WebSocket connection', 'error');
+                return;
+            }
+            
             try {
-                log(`Connecting to room ${roomId}...`, 'info');
+                log(`Connecting to WebSocket for room ${roomId}...`, 'info');
+                
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    log('Closing existing WebSocket connection...', 'info');
+                    ws.close();
+                }
+                
                 ws = new WebSocket(`${WS_BASE}/ws/${roomId}`);
 
                 ws.onopen = () => {
-                    log('WebSocket connected!', 'success');
+                    log('✓ WebSocket connected!', 'success');
                     updateStatus(true);
-                    roomInfo.innerHTML = `<strong>Room ID:</strong> ${roomId}<br><strong>Status:</strong> Connected`;
+                    roomInfo.innerHTML = `<strong>Room ID:</strong> <span style="color: #00d4ff; font-size: 1.1em;">${roomId}</span><br><strong>Status:</strong> Connected`;
+                    joinRoomBtn.disabled = true;
+                    createRoomBtn.disabled = true;
+                    disconnectBtn.disabled = false;
+                    autocompleteBtn.disabled = false;
                 };
 
                 ws.onmessage = (event) => {
@@ -356,17 +450,23 @@
                 };
 
                 ws.onerror = (error) => {
-                    log('WebSocket error occurred', 'error');
-                    console.error(error);
+                    log('WebSocket error - connection failed', 'error');
+                    log('Note: WebSocket errors are normal if server is local', 'info');
+                    console.error('WebSocket error:', error);
                 };
 
                 ws.onclose = () => {
                     log('WebSocket disconnected', 'info');
                     updateStatus(false);
                     ws = null;
+                    joinRoomBtn.disabled = false;
+                    createRoomBtn.disabled = false;
+                    disconnectBtn.disabled = true;
+                    autocompleteBtn.disabled = true;
                 };
             } catch (error) {
                 log(`Connection error: ${error.message}`, 'error');
+                console.error('WebSocket connection error:', error);
             }
         }
 

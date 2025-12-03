@@ -13,7 +13,7 @@ class RoomService:
         room = Room(
             id=str(uuid.uuid4()),
             language=language,
-            code="
+            code="# Start coding here...\n",
             active_users=0
         )
         db.add(room)
